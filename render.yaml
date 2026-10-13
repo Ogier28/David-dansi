@@ -1,0 +1,157 @@
+# ---------------------------------------------------------------------------
+# Blueprint Render — décrit l'infrastructure du portfolio.
+#
+# Render lit ce fichier et crée deux ressources :
+#   - une base PostgreSQL managée
+#   - un service web construit depuis le Dockerfile
+#
+# Les variables marquées « sync: false » ne sont PAS versionnées : Render les
+# demande (ou les laisse vides) au moment de la création du Blueprint, et vous
+# les renseignez dans l'interface. Aucun secret ne doit être écrit ici.
+# ---------------------------------------------------------------------------
+
+databases:
+  - name: portfolio-db
+    databaseName: portfolio
+    user: portfolio
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "16"
+    # Liste vide : la base n'accepte que les connexions internes à Render.
+    # Ajoutez votre IP ici si vous voulez vous y connecter depuis votre poste.
+    ipAllowList: []
+
+services:
+  - type: web
+    name: dansi-david-portfolio
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Route de santé fournie par Laravel : répond 200 sans toucher à la base.
+    healthCheckPath: /up
+    # Chaque push sur la branche principale redéclenche un déploiement.
+    autoDeploy: true
+
+    envVars:
+      # --- Application ----------------------------------------------------
+      - key: APP_NAME
+        value: Dansi David
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      # Générez la clé en local : php artisan key:generate --show
+      # puis collez-la ici dans l'interface Render (format base64:...).
+      - key: APP_KEY
+        sync: false
+      # À remplir avec l'URL publique du service, ex. https://mon-site.onrender.com
+      # Sert aux URL absolues générées hors requête HTTP (sitemap, e-mails).
+      - key: APP_URL
+        sync: false
+
+      - key: APP_LOCALE
+        value: fr
+      - key: APP_FALLBACK_LOCALE
+        value: fr
+      - key: APP_FAKER_LOCALE
+        value: fr_FR
+
+      # --- Journalisation --------------------------------------------------
+      # Le disque du conteneur est éphémère : les logs partent sur la sortie
+      # standard et sont consultables dans l'onglet « Logs » de Render.
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_STACK
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: LOG_DEPRECATIONS_CHANNEL
+        value: "null"
+
+      # --- Base de données (branchée automatiquement sur portfolio-db) -----
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: portfolio-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: portfolio-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: portfolio-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: portfolio-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: portfolio-db
+          property: password
+
+      # --- Sessions, cache, file d'attente --------------------------------
+      # Tout passe par PostgreSQL : rien n'est stocké sur le disque du conteneur.
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_LIFETIME
+        value: "120"
+      # Le site est servi en HTTPS par Render : le cookie de session ne doit
+      # jamais circuler en clair.
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: SESSION_SAME_SITE
+        value: lax
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: FILESYSTEM_DISK
+        value: local
+
+      # --- Réseau ----------------------------------------------------------
+      # Le conteneur est derrière le répartiteur de charge de Render : sans
+      # ceci, Laravel croirait répondre en HTTP et le limiteur de débit verrait
+      # la même IP pour tous les visiteurs.
+      - key: TRUSTED_PROXIES
+        value: "*"
+
+      # --- Envoi des e-mails du formulaire de contact ----------------------
+      # Laissé sur « log » par défaut : les messages sont enregistrés en base
+      # et tracés dans les logs, mais aucun e-mail ne part. Passez MAIL_MAILER
+      # à « smtp » et renseignez les identifiants de votre service d'envoi.
+      - key: MAIL_MAILER
+        value: log
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_SCHEME
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+
+      # --- Formulaire de contact -------------------------------------------
+      - key: CONTACT_RECIPIENT
+        sync: false
+      - key: CONTACT_MIN_DELAY
+        value: "3"
+      - key: CONTACT_MAX_AGE
+        value: "7200"
+
+      # --- Cloudflare Turnstile (captcha invisible) ------------------------
+      # Clés gratuites : https://dash.cloudflare.com/?to=/:account/turnstile
+      # Tant qu'elles sont vides, le formulaire reste protégé par le honeypot,
+      # le délai minimum et le limiteur de débit.
+      - key: TURNSTILE_SITE_KEY
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false

@@ -1,0 +1,478 @@
+@import 'tailwindcss';
+
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+/* ---------------------------------------------------------------------------
+   Plus Jakarta Sans — variable, auto-hébergée (aucune requête vers Google).
+   Deux sous-ensembles : latin + latin-ext (œ, Œ, caractères étendus).
+   --------------------------------------------------------------------------- */
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url('/fonts/plus-jakarta-sans-latin-ext-wght-normal.woff2') format('woff2-variations');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+        U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url('/fonts/plus-jakarta-sans-latin-wght-normal.woff2') format('woff2-variations');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+        U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+   --------------------------------------------------------------------------- */
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* Fonds : bleu-nuit profond, jamais de noir pur */
+    --color-base: #070a11;
+    --color-base-deep: #04060b;
+    --color-surface: #0d1220;
+    --color-surface-raised: #111829;
+
+    /* Or : accent unique et saturé du site */
+    --color-gold: #f5c518;
+    --color-gold-soft: #ffde6b;
+    --color-gold-deep: #d4a50c;
+
+    /* Contrepoint froid, désaturé : valeurs « avant », données secondaires */
+    --color-steel: #4a6585;
+    --color-steel-soft: #7b96b8;
+
+    /* Texte */
+    --color-ink: #f2f5fa;
+    --color-ink-muted: #a3aec2;
+    --color-ink-faint: #78839a;
+
+    /* Rayons différenciés par rôle, pas un rayon unique partout */
+    --radius-panel: 1.25rem;
+    --radius-tile: 0.875rem;
+    --radius-field: 0.625rem;
+
+    --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+@layer base {
+    :root {
+        color-scheme: dark;
+        --header-height: 4.5rem;
+    }
+
+    html {
+        scroll-behavior: smooth;
+        /* Évite que les titres passent sous le header collant */
+        scroll-padding-top: calc(var(--header-height) + 1.5rem);
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        background-color: var(--color-base);
+        color: var(--color-ink);
+        font-family: var(--font-sans);
+        font-size: 1.0625rem;
+        line-height: 1.65;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        overflow-x: hidden;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        text-wrap: balance;
+    }
+
+    /* Chiffres alignés verticalement : indispensable pour des relevés */
+    .tabular,
+    time,
+    [data-metric] {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Masque les éléments Alpine avant l'initialisation du composant */
+    [x-cloak] {
+        display: none !important;
+    }
+
+    ::selection {
+        background-color: color-mix(in oklab, var(--color-gold) 30%, transparent);
+        color: var(--color-ink);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 3px;
+        border-radius: 4px;
+    }
+
+    /* Scrollbar discrète, accordée au fond */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #1d2538 var(--color-base);
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--color-base);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #1d2538;
+        border-radius: 99px;
+        border: 2px solid var(--color-base);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #2a3550;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   Composants
+   --------------------------------------------------------------------------- */
+@layer components {
+    /* Verre dépoli — l'élévation vient du dégradé interne, pas d'une ombre portée */
+    .glass {
+        background-image: linear-gradient(
+            160deg,
+            rgb(255 255 255 / 0.055) 0%,
+            rgb(255 255 255 / 0.025) 42%,
+            rgb(255 255 255 / 0.012) 100%
+        );
+        border: 1px solid rgb(255 255 255 / 0.08);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+    }
+
+    .glass-raised {
+        background-image: linear-gradient(
+            160deg,
+            rgb(255 255 255 / 0.085) 0%,
+            rgb(255 255 255 / 0.04) 45%,
+            rgb(255 255 255 / 0.02) 100%
+        );
+        border: 1px solid rgb(255 255 255 / 0.12);
+        backdrop-filter: blur(22px) saturate(150%);
+        -webkit-backdrop-filter: blur(22px) saturate(150%);
+    }
+
+    /* Liseré clair sur l'arête supérieure : la lumière vient d'en haut */
+    .glass-edge {
+        position: relative;
+    }
+
+    .glass-edge::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgb(255 255 255 / 0.22) 30%,
+            rgb(255 255 255 / 0.22) 70%,
+            transparent
+        );
+        pointer-events: none;
+    }
+
+    /* Trame millimétrée : papier d'étude technique, à la limite du visible */
+    .plot-grid {
+        background-image: linear-gradient(to right, rgb(255 255 255 / 0.028) 1px, transparent 1px),
+            linear-gradient(to bottom, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+        background-size: 72px 72px;
+        background-position: center top;
+        /* La trame s'efface vers les bords : elle structure sans encadrer. */
+        -webkit-mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 10%, transparent 75%);
+        mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 10%, transparent 75%);
+    }
+
+    /* Halo d'or : un seul par écran, placé pour éclairer le verre */
+    .gold-bloom {
+        background: radial-gradient(
+            closest-side,
+            color-mix(in oklab, var(--color-gold) 16%, transparent),
+            transparent
+        );
+        filter: blur(6px);
+    }
+
+    .steel-bloom {
+        background: radial-gradient(
+            closest-side,
+            color-mix(in oklab, var(--color-steel) 20%, transparent),
+            transparent
+        );
+    }
+
+    /* Boutons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 99px;
+        padding: 0.78rem 1.5rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        transition:
+            transform 220ms var(--ease-out-soft),
+            box-shadow 220ms var(--ease-out-soft),
+            background-color 220ms var(--ease-out-soft),
+            border-color 220ms var(--ease-out-soft),
+            color 220ms var(--ease-out-soft);
+    }
+
+    .btn-gold {
+        background-color: var(--color-gold);
+        color: #140f00;
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-gold) 40%, transparent);
+    }
+
+    .btn-gold:hover {
+        background-color: var(--color-gold-soft);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 34px -10px color-mix(in oklab, var(--color-gold) 55%, transparent);
+    }
+
+    .btn-gold:active {
+        background-color: var(--color-gold-deep);
+        transform: translateY(0);
+    }
+
+    .btn-glass {
+        background-color: rgb(255 255 255 / 0.04);
+        border: 1px solid rgb(255 255 255 / 0.12);
+        color: var(--color-ink);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    .btn-glass:hover {
+        background-color: rgb(255 255 255 / 0.08);
+        border-color: color-mix(in oklab, var(--color-gold) 45%, transparent);
+        transform: translateY(-2px);
+    }
+
+    /* Champs de formulaire */
+    .field {
+        width: 100%;
+        border-radius: var(--radius-field);
+        background-color: rgb(255 255 255 / 0.035);
+        border: 1px solid rgb(255 255 255 / 0.1);
+        padding: 0.8rem 1rem;
+        color: var(--color-ink);
+        font-size: 0.9375rem;
+        transition:
+            border-color 180ms var(--ease-out-soft),
+            background-color 180ms var(--ease-out-soft),
+            box-shadow 180ms var(--ease-out-soft);
+    }
+
+    .field::placeholder {
+        color: var(--color-ink-faint);
+    }
+
+    .field:focus {
+        outline: none;
+        background-color: rgb(255 255 255 / 0.06);
+        border-color: color-mix(in oklab, var(--color-gold) 55%, transparent);
+        box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-gold) 10%, transparent);
+    }
+
+    .field[aria-invalid='true'] {
+        border-color: #f87171;
+    }
+
+    /* Header : transparent en haut de page, verre dès que l'on défile */
+    .header-shell {
+        border-bottom: 1px solid transparent;
+        transition:
+            background-color 300ms var(--ease-out-soft),
+            border-color 300ms var(--ease-out-soft),
+            backdrop-filter 300ms var(--ease-out-soft);
+    }
+
+    [data-site-header].is-scrolled .header-shell {
+        background-color: rgb(7 10 17 / 0.74);
+        border-bottom-color: rgb(255 255 255 / 0.07);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+    }
+
+    /* Graduation du rail de navigation */
+    .rail-tick {
+        height: 1px;
+        width: 0.75rem;
+        background-color: rgb(255 255 255 / 0.22);
+        transition:
+            width 260ms var(--ease-out-soft),
+            background-color 260ms var(--ease-out-soft);
+    }
+
+    .rail-link[aria-current='true'] .rail-tick {
+        width: 1.75rem;
+        background-color: var(--color-gold);
+    }
+
+    .rail-link:hover .rail-tick {
+        width: 1.5rem;
+        background-color: var(--color-ink-muted);
+    }
+
+    .rail-label {
+        opacity: 0;
+        transform: translateX(-4px);
+        transition:
+            opacity 260ms var(--ease-out-soft),
+            transform 260ms var(--ease-out-soft);
+    }
+
+    .rail-link:hover .rail-label,
+    .rail-link:focus-visible .rail-label,
+    .rail-link[aria-current='true'] .rail-label {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilitaires
+   --------------------------------------------------------------------------- */
+@utility text-balance-tight {
+    text-wrap: balance;
+    letter-spacing: -0.03em;
+}
+
+/* Dégradé or réservé aux grands chiffres, jamais au texte courant */
+@utility metric-gradient {
+    background-image: linear-gradient(170deg, var(--color-gold-soft), var(--color-gold-deep));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   Animations
+   --------------------------------------------------------------------------- */
+@layer utilities {
+    /* Révélation au scroll, pilotée par IntersectionObserver (resources/js/app.js) */
+    [data-reveal] {
+        opacity: 0;
+        transform: translateY(14px);
+        transition:
+            opacity 620ms var(--ease-out-soft),
+            transform 620ms var(--ease-out-soft);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+
+    [data-reveal].is-revealed {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* Tracé de la courbe de charge du hero : le seul moment orchestré */
+    [data-draw-path] {
+        stroke-dasharray: var(--path-length, 1200);
+        stroke-dashoffset: var(--path-length, 1200);
+        transition: stroke-dashoffset 2200ms cubic-bezier(0.37, 0, 0.26, 1);
+    }
+
+    [data-draw-path].is-drawn {
+        stroke-dashoffset: 0;
+    }
+
+    [data-draw-fill] {
+        opacity: 0;
+        transition: opacity 900ms 900ms var(--ease-out-soft);
+    }
+
+    [data-draw-fill].is-drawn {
+        opacity: 1;
+    }
+
+    .hero-enter {
+        animation: hero-enter 900ms var(--ease-out-soft) both;
+    }
+
+    @keyframes hero-enter {
+        from {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* Respiration du halo : 18 s, imperceptible mais le verre reste vivant */
+    .bloom-breathe {
+        animation: bloom-breathe 18s ease-in-out infinite;
+    }
+
+    @keyframes bloom-breathe {
+        0%,
+        100% {
+            opacity: 0.75;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.06);
+        }
+    }
+}
+
+/* Aucune animation si l'utilisateur la refuse : tout s'affiche à l'état final */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    [data-reveal] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-draw-path] {
+        stroke-dashoffset: 0;
+    }
+
+    [data-draw-fill] {
+        opacity: 1;
+    }
+}

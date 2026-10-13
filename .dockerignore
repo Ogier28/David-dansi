@@ -1,0 +1,39 @@
+# Dépendances réinstallées pendant le build (jamais copiées depuis la machine locale)
+/vendor
+/node_modules
+
+# Secrets et bases locales : ne doivent jamais entrer dans une image
+.env
+.env.*
+!.env.example
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Historique et outillage de développement
+/.git
+/.github
+/.idea
+/.vscode
+/.zed
+/.claude
+/.ai
+.mcp.json
+boost.json
+AGENTS.md
+CLAUDE.md
+
+# Artefacts régénérés par le build
+/public/build
+/public/hot
+/public/storage
+/public/fonts-manifest.dev.json
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*.php
+
+# Inutile en production
+/tests
+.phpunit.result.cache
+.phpunit.cache
