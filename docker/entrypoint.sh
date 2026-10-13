@@ -78,5 +78,9 @@ fi
 php artisan cache:clear --no-interaction >/dev/null 2>&1 || true
 
 # --- 6. Serveur --------------------------------------------------------------
+# Les étapes précédentes tournent en root : on rend la main à www-data, sous
+# l'identité duquel PHP-FPM exécute l'application.
+chown -R www-data:www-data storage bootstrap/cache
+
 log "Démarrage de Nginx et PHP-FPM."
 exec /usr/bin/supervisord -c /etc/supervisord.conf
